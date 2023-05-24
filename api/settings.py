@@ -7,8 +7,13 @@ class APISettings(BaseSettings):
     db_host: str
     db_port: str
     db_name: str
-    debug: bool
+
+    debug: bool = False
+
     port: int = 8080
+
+    admin_email: str = "admin@example.com"
+    admin_password: str = "123"
 
     class Config:
         env_file = '.env'

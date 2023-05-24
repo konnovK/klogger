@@ -4,7 +4,7 @@ import uvicorn
 
 
 def main():
-    uvicorn.run(app, port=settings.port, host='0.0.0.0')
+    uvicorn.run(app, port=settings.port, host='0.0.0.0', access_log=False)
 
 
 if __name__ == '__main__':
