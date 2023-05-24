@@ -1,3 +1,4 @@
+import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query
 from loguru import logger
 
@@ -16,6 +17,7 @@ router = APIRouter(prefix='/log-group', tags=['LogGroup'])
 
 @router.post('', status_code=201)
 async def create_log_group(body: CreateLogGroupRequest, db: DB = Depends(get_db), user_id: str = Depends(check_auth)) -> LogGroupResponse:
+    logger.debug(f'USER WITH id={user_id} TRY TO CREATE LogGroup {body.name}')
     async with db.async_session() as session:
         session: AsyncSession
         user_db = await session.scalar(sa.select(User).where(User.id == user_id))
@@ -38,7 +40,8 @@ async def update_log_group():
 
 
 @router.delete('/{id}', status_code=204)
-async def delete_log_group(id: str, db: DB = Depends(get_db), user_id: str = Depends(check_auth)):
+async def delete_log_group(id: uuid.UUID, db: DB = Depends(get_db), user_id: str = Depends(check_auth)):
+    logger.debug(f'USER WITH id={user_id} TRY TO DELETE LogGroup {str(id)}')
     async with db.async_session() as session:
         session: AsyncSession
         user_db = await session.scalar(sa.select(User).where(User.id == user_id))
@@ -46,7 +49,7 @@ async def delete_log_group(id: str, db: DB = Depends(get_db), user_id: str = Dep
             raise HTTPException(401, "wrong access token")
         log_group = await session.scalar(sa.select(LogGroup).where(LogGroup.id == id))
         if log_group is None:
-            raise HTTPException(409, f'LogGroup with id={id} is not exists')
+            raise HTTPException(409, f'LogGroup with id={str(id)} is not exists')
         if str(log_group.user_id) != user_id:
             raise HTTPException(403, f'you have no permissions for deleting this LogGroup')
         await session.delete(log_group)
@@ -55,7 +58,8 @@ async def delete_log_group(id: str, db: DB = Depends(get_db), user_id: str = Dep
 
 
 @router.get('')
-async def list_log_groups(user_email: str | None = None, db: DB = Depends(get_db)):
+async def list_log_groups(user_email: str | None = None, db: DB = Depends(get_db), user_id: str = Depends(check_auth)):
+    logger.debug(f'USER WITH id={user_id} TRY TO GET LIST OF LogGroup FOR user_email={user_email}')
     async with db.async_session() as session:
         session: AsyncSession
         if user_email is None or user_email == '':

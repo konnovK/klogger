@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
 from sqlalchemy.exc import IntegrityError
 
-from api.dependencies import get_db
+from api.dependencies import check_auth, get_db
 from api.schemas.user import CreateUserRequest, LoginRequest, LoginResponse, UserResponse
 from api.utils import hash_password
 from api.utils import create_jwt
@@ -38,7 +38,9 @@ async def update_user(id: uuid.UUID) -> UserResponse:
 
 
 @router.delete('/{id}', status_code=204)
-async def delete_user(id: uuid.UUID, db: DB = Depends(get_db)):
+async def delete_user(id: uuid.UUID, db: DB = Depends(get_db), user_id: str = Depends(check_auth)):
+    if user_id != str(id):
+        raise HTTPException(403, 'you cannot delete this user')
     async with db.async_session() as session:
         session: AsyncSession
         user_db = await session.scalar(sa.select(User).where(User.id == id))
