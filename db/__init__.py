@@ -1,5 +1,6 @@
 from .schema import metadata
 from .models import LogGroup, LogLevel, LogItem, User
+from .db import DB
 
 
 __all__ = [
@@ -7,5 +8,6 @@ __all__ = [
     LogGroup,
     LogLevel,
     LogItem,
-    User
+    User,
+    DB
 ]

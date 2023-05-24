@@ -1,14 +1,17 @@
 
+from typing import Literal
 from loguru import logger
 from pydantic import ValidationError
-from db.db import DB
+from db import DB
 from api.settings import APISettings
 
 
 try:
     settings = APISettings()
+    if settings.debug:
+        logger.warning("DEBUG MODE IS True")
 except ValidationError as err:
-    logger.error(err)
+    logger.critical(err)
     exit(1)
 
 db = DB(
@@ -21,7 +24,11 @@ db = DB(
 )
 
 
+log_levels = Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+
+
 __all__ = [
     settings,
     db,
+    log_levels
 ]

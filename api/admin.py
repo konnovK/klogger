@@ -16,7 +16,7 @@ from db import LogGroup, LogItem, LogLevel, User
 
 
 def _create_sync_engine(user, password, host, port, name):
-    logger.info("CREATE SYNC DB ENGINE FOR ADMIN")
+    logger.info(f"INITIALIZE DB FOR ADMIN WITH debug={settings.debug}")
     pg_dsn = f'postgresql://{user}:{password}@{host}:{port}/{name}'
     engine = sa.create_engine(
         pg_dsn,
