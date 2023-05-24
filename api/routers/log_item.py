@@ -14,5 +14,5 @@ async def delete_log_item():
 
 
 @router.get('')
-async def list_log_item():
+async def list_log_items():
     raise HTTPException(501)

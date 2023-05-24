@@ -21,10 +21,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(user_router)
-app.include_router(log_group_router)
-app.include_router(log_level_router)
-app.include_router(log_item_router)
+app.include_router(user_router, prefix='/api/v1')
+app.include_router(log_group_router, prefix='/api/v1')
+app.include_router(log_level_router, prefix='/api/v1')
+app.include_router(log_item_router, prefix='/api/v1')
 
 all = [
     app

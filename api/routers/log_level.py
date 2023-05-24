@@ -25,7 +25,7 @@ async def create_log_level(body: CreateLogLevelRequest, db: DB = Depends(get_db)
             await session.refresh(log_level)
             return log_level
         except IntegrityError:
-            logger.info(f'TRY TO CREATE {body.name}, THATS ALREADY EXISTS')
+            logger.info(f'TRY TO CREATE LogLevel {body.name}, THATS ALREADY EXISTS')
             raise HTTPException(409, f"{body.name} is already exists")
 
 
@@ -42,7 +42,7 @@ async def delete_log_level(name: log_levels, db: DB = Depends(get_db)):
 
 
 @router.get('')
-async def list_log_level(db: DB = Depends(get_db)) -> list[LogLevelResponse]:
+async def list_log_levels(db: DB = Depends(get_db)) -> list[LogLevelResponse]:
     async with db.async_session() as session:
         session: AsyncSession
         log_levels = (await session.execute(sa.select(LogLevel))).scalars().all()

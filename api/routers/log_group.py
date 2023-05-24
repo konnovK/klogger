@@ -19,5 +19,5 @@ async def delete_log_group():
 
 
 @router.get('')
-async def list_log_group():
+async def list_log_groups():
     raise HTTPException(501)
