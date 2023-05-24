@@ -73,7 +73,7 @@ async def list_log_items(
         if log_group is None:
             raise HTTPException(403, "you cannot read logs from this group")
         
-        stmt = sa.select(LogItem).where(LogGroup.id == log_group_id)
+        stmt = sa.select(LogItem).where(LogGroup.id == log_group_id).order_by(sa.desc(LogItem.timestamp))
 
         if level is not None:
             stmt = stmt.where(LogLevel.name == level)
