@@ -15,20 +15,20 @@ security = HTTPBearer()
 
 def check_auth(authorization = Depends(security)) -> str:
     if authorization is None:
-        raise HTTPException(401, 'No access token')
+        raise HTTPException(401, 'no access token')
     scheme = authorization.scheme
     token = authorization.credentials
 
     if scheme != 'Bearer':
-        raise HTTPException(401, 'Wrong access token scheme')
+        raise HTTPException(401, 'wrong access token scheme')
     if token is None:
-        raise HTTPException(401, 'No access token')
+        raise HTTPException(401, 'no access token')
     try:
         unexpired = check_access_token_unexpired(token)
     except Exception:
-        raise HTTPException(401, 'Wrong access token format')
+        raise HTTPException(401, 'wrong access token format')
     if not unexpired:
-        raise HTTPException(401, 'Expired access token')
+        raise HTTPException(401, 'expired access token')
     user_id = get_id_from_access_token(token)
     return user_id
 
