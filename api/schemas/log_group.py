@@ -7,7 +7,7 @@ class LogGroupResponse(BaseModel):
     created_at: datetime.datetime
 
     name: str
-    description: str
+    description: str | None
 
     class Config:
         orm_mode = True

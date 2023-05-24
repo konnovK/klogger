@@ -17,7 +17,7 @@ class User(Base):
 
     log_groups = so.relationship(
         "LogGroup",
-        back_populates='user', lazy='selectin'
+        back_populates='user', lazy='selectin', cascade="all,delete"
     )
 
     def __repr__(self) -> str:
@@ -35,7 +35,7 @@ class LogGroup(Base):
 
     log_items = so.relationship(
         "LogItem",
-        back_populates='log_group', lazy='selectin'
+        back_populates='log_group', lazy='selectin', cascade="all,delete"
     )
 
     user: so.Mapped[User] = so.relationship(back_populates='log_groups', lazy='selectin')
