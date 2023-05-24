@@ -9,6 +9,17 @@ class CreateUserRequest(BaseModel):
     password: str
 
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    access_token_expires_in: int
+
+
 class UserResponse(BaseModel):
     id: UUID4
     created_at: datetime.datetime

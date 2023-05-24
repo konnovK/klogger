@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+import time
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from loguru import logger
 
 from api.admin import setup_admin
 
@@ -10,6 +12,17 @@ from api.routers.log_item import router as log_item_router
 
 
 app = FastAPI()
+
+
+@app.middleware("http")
+async def access_log(request: Request, call_next):
+    start_time = time.time()
+    response: Response = await call_next(request)
+    process_time = time.time() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    logger.info(f'{request.method} {request.url.path} {response.status_code}')
+    return response
+
 
 setup_admin(app)
 
