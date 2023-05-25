@@ -1,10 +1,15 @@
+import random
+import uuid
 from loguru import logger
 from klogger import KLoggerHandler
 
-handler = KLoggerHandler('http://localhost:8080', 'user@example.com', 'string', '4f62934f-5f07-4246-97ed-049926bd72db')
+handler = KLoggerHandler('http://185.221.213.55:8080', 'konnovki@yandex.ru', '123', 'ad84882d-5830-4ce7-95f0-255abb82494e')
 
-logger.add(handler)
+logger.add(handler, enqueue=True, level='DEBUG')
 
 
-for i in range(10000):
-    logger.info(f'test {i}')
+for i in range(5000):
+    log_level = random.choice(['DEBUG', 'DEBUG', 'INFO', 'INFO', 'WARNING', 'ERROR'])
+    log_message = f'Second test obj {i}: {uuid.uuid4()}'
+
+    logger.log(log_level, log_message)

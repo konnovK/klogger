@@ -20,6 +20,8 @@ class DB:
         self.engine = create_async_engine(
             postgres_dsn,
             echo=debug,
+            pool_size=20,
+            max_overflow=40,
         )
         self.async_session = async_sessionmaker(self.engine)
     

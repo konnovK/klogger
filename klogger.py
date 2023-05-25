@@ -7,7 +7,7 @@ class KLoggerHandler(Handler):
     def __init__(self, url: str, user_email: str, user_password: str, log_group_id: str, level=0) -> None:
         r = requests.post(f'{url}/api/v1/user/login', json={'email': user_email, 'password': user_password})
         if r.status_code != 200:
-            raise ValueError
+            raise Exception(f'Problems with auth: {r.json()}')
         response_data = r.json()
         self.url = url
         self.log_group_id = log_group_id
