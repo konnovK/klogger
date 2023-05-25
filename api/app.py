@@ -11,7 +11,11 @@ from api.routers.log_level import router as log_level_router
 from api.routers.log_item import router as log_item_router
 
 
-app = FastAPI()
+app = FastAPI(
+    title='KLogger REST API',
+    description='Простой сервер для сборки и просмотра логов.',
+    version='0.1.0 Beta'
+)
 
 
 @app.middleware("http")
