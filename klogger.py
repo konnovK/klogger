@@ -29,3 +29,5 @@ class KLoggerHandler(Handler):
                 'message': log_message,
             }
         )
+        if r.status_code != 201:
+            self.handleError(record)

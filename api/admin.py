@@ -67,27 +67,40 @@ def setup_admin(app: FastAPI):
 
     authentication_backend = AdminAuth(secret_key=_encode_token(settings.admin_email, settings.admin_password))
 
-    admin = Admin(app, engine, authentication_backend=authentication_backend)
+    admin = Admin(
+        app,
+        engine,
+        authentication_backend=authentication_backend,
+        title="KLogger Admin"
+    )
 
     logger.info("REGISTER ALL DB TABLES IN ADMIN")
 
 
     class LogGroupAdmin(ModelView, model=LogGroup):
-        column_list = [LogGroup.name, LogGroup.description, LogGroup.id]
+        icon = 'fa-solid fa-folder'
+        column_list = [LogGroup.name, LogGroup.description, LogGroup.user, LogGroup.id]
     admin.add_view(LogGroupAdmin)
 
 
     class LogLevelAdmin(ModelView, model=LogLevel):
+        icon = 'fa-solid fa-tag'
         column_list = [LogLevel.name]
+        can_edit = False
     admin.add_view(LogLevelAdmin)
 
 
     class LogItemAdmin(ModelView, model=LogItem):
+        icon = 'fa-solid fa-layer-group'
         column_list = [LogItem.log_level, LogItem.message, LogItem.timestamp, LogItem.log_group, LogItem.id]
+        column_sortable_list = [LogItem.timestamp]
+        column_searchable_list = [LogItem.log_level, LogItem.message]
+        column_default_sort = (LogItem.timestamp, True)
     admin.add_view(LogItemAdmin)
 
 
     class UserAdmin(ModelView, model=User):
+        icon = 'fa-solid fa-user'
         column_list = [User.email, User.id, User.created_at]
     admin.add_view(UserAdmin)
 

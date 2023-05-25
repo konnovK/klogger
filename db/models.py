@@ -54,7 +54,7 @@ class LogLevel(Base):
 
     log_items = so.relationship(
         "LogItem",
-        back_populates='log_level', lazy='selectin'
+        back_populates='log_level', lazy='selectin', cascade="all,delete"
     )
 
     def __repr__(self) -> str:
