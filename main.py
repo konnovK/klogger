@@ -1,4 +1,7 @@
 from loguru import logger
+
+logger.add('.log', level='DEBUG')
+
 from api.app import app
 from api.globals import settings
 import uvicorn
