@@ -3,7 +3,7 @@ import uuid
 from loguru import logger
 from klogger import KLoggerHandler
 
-handler = KLoggerHandler('http://185.221.213.55:8080', 'konnovki@yandex.ru', '123', 'ad84882d-5830-4ce7-95f0-255abb82494e')
+handler = KLoggerHandler('185.221.213.55:8080', 'konnovki@yandex.ru', '123', 'ad84882d-5830-4ce7-95f0-255abb82494e')
 
 logger.add(handler, enqueue=True, level='DEBUG')
 
