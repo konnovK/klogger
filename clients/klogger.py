@@ -1,3 +1,18 @@
+"""
+Copyright © 2022 Konnov Kirill. All rights reserved.
+
+Предоставляет класс KLoggerHandler, который реализует logging.Handler.
+
+https://github.com/konnovK/klogger
+
+Пример использования:
+    >>> import logging
+    >>> logger = logging.getLogger(__name__)
+    >>> handler = KLoggerHandler("localhost:8080", "user@example.com", "hackme", "ad84882d-5830-4ce7-95f0-255abb82494e")
+    >>> logger.addHandler(handler)
+    >>> logger.info("Some log message...")
+"""
+
 import datetime
 import json
 from logging import Handler, LogRecord

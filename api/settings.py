@@ -15,6 +15,8 @@ class APISettings(BaseSettings):
     admin_email: str = "admin@example.com"
     admin_password: str = "123"
 
+    log_item_ttl: int = 60 * 60 * 72
+
     class Config:
         env_file = '.env'
         env_file_encoding = 'utf-8'
