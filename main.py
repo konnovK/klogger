@@ -1,6 +1,6 @@
 from loguru import logger
 
-logger.add('.log', level='DEBUG')
+logger.add('.log', level='DEBUG', rotation='10 MB', compression="gz")
 
 from api.app import app
 from api.globals import settings
