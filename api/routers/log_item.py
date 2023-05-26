@@ -7,7 +7,7 @@ import sqlalchemy as sa
 from sqlalchemy.exc import IntegrityError
 
 from api.dependencies import get_db, check_auth
-from api.schemas.log_item import CreateLogItemRequest, LogItemResponse
+from api.schemas.log_item import CreateLogItemRequest, LogItemResponse, ListLogItemResponse
 from api.globals import log_levels
 
 from db import DB, User, LogGroup, LogItem, LogLevel
@@ -63,7 +63,7 @@ async def list_log_items(
     offset: int | None = None,
     db: DB = Depends(get_db),
     user_id: str = Depends(check_auth)
-) -> list[LogItemResponse]:
+) -> ListLogItemResponse:
     async with db.async_session() as session:
         session: AsyncSession
         user_db = await session.scalar(sa.select(User).where(User.id == user_id))
@@ -72,15 +72,18 @@ async def list_log_items(
         log_group = await session.scalar(sa.select(LogGroup).where(User.id == user_id))
         if log_group is None:
             raise HTTPException(403, "you cannot read logs from this group")
-        
+
+        count_stmt = sa.select(sa.func.count()).select_from(LogItem).where(LogGroup.id == log_group_id)
         stmt = sa.select(LogItem).where(LogGroup.id == log_group_id).order_by(sa.desc(LogItem.timestamp))
 
         if level is not None:
+            count_stmt = count_stmt.where(LogLevel.name == level)
             stmt = stmt.where(LogLevel.name == level)
         if limit is not None:
             stmt = stmt.limit(limit)
         if offset is not None:
             stmt = stmt.offset(offset)
 
+        count = await session.scalar(count_stmt)
         log_items = (await session.execute(stmt)).scalars().all()
-        return log_items
+        return ListLogItemResponse(count=count, items=log_items)

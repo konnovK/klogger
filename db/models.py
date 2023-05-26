@@ -75,3 +75,6 @@ class LogItem(Base):
 
     log_level: so.Mapped[LogLevel] = so.relationship(back_populates='log_items', lazy='selectin')
     log_level_name = so.mapped_column(sa.ForeignKey('log_level.name'), nullable=False)
+
+    def __repr__(self):
+        return f'{self.log_level_name} {self.timestamp} {self.message}'

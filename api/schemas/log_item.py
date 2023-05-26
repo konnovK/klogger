@@ -22,3 +22,8 @@ class LogItemResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class ListLogItemResponse(BaseModel):
+    count: int
+    items: list[LogItemResponse]
