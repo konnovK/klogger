@@ -101,6 +101,8 @@ def setup_admin(app: FastAPI):
 
     class UserAdmin(ModelView, model=User):
         icon = 'fa-solid fa-user'
+        can_edit = False
+        can_create = False
         column_list = [User.email, User.id, User.created_at]
     admin.add_view(UserAdmin)
 
