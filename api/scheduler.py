@@ -18,7 +18,9 @@ async def _delete_old_log_items():
     async with db.async_session() as session:
         session: AsyncSession
         count = (await session.execute(sa.delete(LogItem).where(LogItem.timestamp < datetime.datetime.now() - log_item_ttl).returning(LogItem.id))).scalars().all()
+        await session.commit()
         logger.debug(f"DELETE OLD LOG ITEMS: DELETE {len(count)} LogItems")
+
 
 
 @scheduler.task('daily')
