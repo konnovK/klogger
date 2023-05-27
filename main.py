@@ -5,7 +5,7 @@ logger.add('.log', level='DEBUG', rotation='10 MB', compression="gz")
 
 from api.app import app
 from api.scheduler import scheduler
-from api.globals import settings
+from api.globals import settings, db
 import uvicorn
 
 
@@ -21,6 +21,9 @@ class Server(uvicorn.Server):
 
 
 async def main():
+    from db.schema import metadata
+    await db.create_all_tables(metadata)
+
     "Run scheduler and the API"
     server = Server(config=uvicorn.Config(app, host='0.0.0.0', port=settings.port, access_log=False))
 

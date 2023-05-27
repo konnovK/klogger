@@ -30,3 +30,10 @@ class DB:
         async with self.engine.begin() as conn:
             await conn.run_sync(metadata.drop_all)
             await conn.run_sync(metadata.create_all)
+            await conn.commit()
+
+    async def create_all_tables(self, metadata):
+        logger.info("CREATE ALL TABLES")
+        async with self.engine.begin() as conn:
+            await conn.run_sync(metadata.create_all)
+            await conn.commit()
