@@ -22,11 +22,11 @@ async def create_log_item(body: CreateLogItemRequest, log_group_id: uuid.UUID, d
         log_group_id = await session.scalar(sa.select(LogGroup.id).where(LogGroup.id == log_group_id).where(User.id == user_id))
         if log_group_id is None:
             raise HTTPException(403, "you cannot write logs to this group")
-        log_level_id = await session.scalar(sa.select(LogLevel.id).where(LogLevel.name == body.level))
-        if log_level_id is None:
+        log_level_name = await session.scalar(sa.select(LogLevel.name).where(LogLevel.name == body.level))
+        if log_level_name is None:
             raise HTTPException(400, 'wrong log level')
 
-        log_item = LogItem(log_level_id=log_level_id, log_group_id=log_group_id, message=body.message, timestamp=body.timestamp)
+        log_item = LogItem(log_level_name=log_level_name, log_group_id=log_group_id, message=body.message, timestamp=body.timestamp)
 
         session.add(log_item)
 
