@@ -1,7 +1,7 @@
 from hashlib import md5
 from typing import Optional
 from fastapi import FastAPI
-from api.globals import settings
+from api.globals import settings, db
 
 from loguru import logger
 from sqladmin import Admin, ModelView
@@ -13,16 +13,6 @@ from starlette.responses import RedirectResponse
 import sqlalchemy as sa
 
 from db import LogGroup, LogItem, LogLevel, User
-
-
-def _create_sync_engine(user, password, host, port, name):
-    logger.info(f"INITIALIZE DB FOR ADMIN WITH debug={settings.debug}")
-    pg_dsn = f'postgresql://{user}:{password}@{host}:{port}/{name}'
-    engine = sa.create_engine(
-        pg_dsn,
-        echo=settings.debug
-    )
-    return engine
 
 
 def _encode_token(email: str, password: str):
@@ -57,19 +47,12 @@ class AdminAuth(AuthenticationBackend):
 
 def setup_admin(app: FastAPI):
     logger.info("SETUP ADMIN FOR APP")
-    engine = _create_sync_engine(
-        settings.db_user,
-        settings.db_password,
-        settings.db_host,
-        settings.db_port,
-        settings.db_name
-    )
 
     authentication_backend = AdminAuth(secret_key=_encode_token(settings.admin_email, settings.admin_password))
 
     admin = Admin(
         app,
-        engine,
+        db.engine,
         authentication_backend=authentication_backend,
         title="KLogger Admin"
     )
