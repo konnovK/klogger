@@ -18,7 +18,7 @@ def setup_app(app: FastAPI):
         response: Response = await call_next(request)
         process_time = time.time() - start_time
         response.headers["X-Process-Time"] = str(process_time)
-        logger.info(f'[{request.client.host}] {request.method} {request.url.path} {response.status_code}')
+        logger.info(f'[{request.client.host}] {request.method} {request.url.path} [{response.status_code}] {process_time:.3f}')
         return response
 
     app.add_middleware(
