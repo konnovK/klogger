@@ -19,17 +19,14 @@ router = APIRouter(prefix='/log', tags=['LogItem'])
 async def create_log_item(body: CreateLogItemRequest, log_group_id: uuid.UUID, db: DB = Depends(get_db), user_id: str = Depends(check_auth)) -> LogItemResponse:
     async with db.async_session() as session:
         session: AsyncSession
-        # user_db_id = await session.scalar(sa.select(User.id).where(User.id == user_id))
-        # if user_db_id is None:
-        #     raise HTTPException(401, "wrond access token")
         log_group_id = await session.scalar(sa.select(LogGroup.id).where(LogGroup.id == log_group_id).where(User.id == user_id))
         if log_group_id is None:
             raise HTTPException(403, "you cannot write logs to this group")
-        log_level = await session.scalar(sa.select(LogLevel).where(LogLevel.name == body.level))
-        if log_level is None:
+        log_level_id = await session.scalar(sa.select(LogLevel.id).where(LogLevel.name == body.level))
+        if log_level_id is None:
             raise HTTPException(400, 'wrong log level')
 
-        log_item = LogItem(log_level=log_level, log_group_id=log_group_id, message=body.message, timestamp=body.timestamp)
+        log_item = LogItem(log_level_id=log_level_id, log_group_id=log_group_id, message=body.message, timestamp=body.timestamp)
 
         session.add(log_item)
 
@@ -69,8 +66,8 @@ async def list_log_items(
         user_db = await session.scalar(sa.select(User).where(User.id == user_id))
         if user_db is None:
             raise HTTPException(401, "wrond access token")
-        log_group = await session.scalar(sa.select(LogGroup).where(User.id == user_id))
-        if log_group is None:
+        log_group_db_id = await session.scalar(sa.select(LogGroup.id).where(User.id == user_id))
+        if log_group_db_id is None:
             raise HTTPException(403, "you cannot read logs from this group")
 
         count_stmt = sa.select(sa.func.count()).select_from(LogItem).where(LogGroup.id == log_group_id)

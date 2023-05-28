@@ -63,13 +63,16 @@ def setup_admin(app: FastAPI):
     class LogGroupAdmin(ModelView, model=LogGroup):
         icon = 'fa-solid fa-folder'
         column_list = [LogGroup.name, LogGroup.description, LogGroup.user, LogGroup.id]
+        column_details_exclude_list = [LogGroup.log_items]
     admin.add_view(LogGroupAdmin)
 
 
     class LogLevelAdmin(ModelView, model=LogLevel):
         icon = 'fa-solid fa-tag'
         column_list = [LogLevel.name]
+        column_details_exclude_list = [LogLevel.log_items]
         can_edit = False
+        can_view_details = False
     admin.add_view(LogLevelAdmin)
 
 
