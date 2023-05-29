@@ -20,6 +20,7 @@ services:
       - KLOGGER_LOG:/app/.log
     depends_on:
       - postgres
+    restart: unless-stopped
   postgres:
     image: postgres:15.3
     environment:
