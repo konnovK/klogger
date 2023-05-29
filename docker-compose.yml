@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+  klogger:
+    build: .
+    ports:
+      - "8080:8080"
+    expose:
+      - 8080:8080
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME}
+    volumes:
+      - KLOGGER_LOG:/app/.log
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:15.3
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    expose:
+      - ${DB_PORT}:5432
+    volumes:
+      - PGDATA:/var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  PGDATA:
+  KLOGGER_LOG:

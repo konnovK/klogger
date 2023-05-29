@@ -1,7 +1,7 @@
 import asyncio
 from loguru import logger
 
-logger.add('.log', level='DEBUG', rotation='10 MB', compression="gz")
+logger.add('.log/.log', level='DEBUG', rotation='10 MB', compression="gz")
 
 from api.app import app
 from api.scheduler import scheduler
