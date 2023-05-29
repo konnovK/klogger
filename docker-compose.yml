@@ -13,6 +13,9 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=${DB_NAME}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - DEBUG=${DEBUG}
     volumes:
       - KLOGGER_LOG:/app/.log
     depends_on:
