@@ -1,86 +1,44 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
-from loguru import logger
 
-from sqlalchemy.ext.asyncio import AsyncSession
-import sqlalchemy as sa
-from sqlalchemy.exc import IntegrityError
+from db import DB
 
 from api.dependencies import get_db, check_auth
 from api.schemas.log_item import CreateLogItemRequest, LogItemResponse, ListLogItemResponse
-from api.globals import log_levels
-
-from db import DB, User, LogGroup, LogItem, LogLevel
+from api.globals import log_item_controller
 
 router = APIRouter(prefix='/log', tags=['LogItem'])
 
 
 @router.post('', status_code=201)
 async def create_log_item(body: CreateLogItemRequest, log_group_id: uuid.UUID, db: DB = Depends(get_db), user_id: str = Depends(check_auth)) -> LogItemResponse:
-    async with db.async_session() as session:
-        session: AsyncSession
-        log_group_id = await session.scalar(sa.select(LogGroup.id).where(LogGroup.id == log_group_id).where(User.id == user_id))
-        if log_group_id is None:
-            raise HTTPException(403, "you cannot write logs to this group")
-        log_level_name = await session.scalar(sa.select(LogLevel.name).where(LogLevel.name == body.level))
-        if log_level_name is None:
-            raise HTTPException(400, 'wrong log level')
-
-        log_item = LogItem(log_level_name=log_level_name, log_group_id=log_group_id, message=body.message, timestamp=body.timestamp)
-
-        session.add(log_item)
-
-        await session.commit()
-        await session.refresh(log_item)
-
-        return log_item
+    created_log_item = await log_item_controller.create_log_item(db, body.level, body.message, body.timestamp, log_group_id, user_id)
+    if created_log_item is None:
+        raise HTTPException(400, 'wrong request data')
+    return LogItemResponse(**created_log_item.dict())
 
 
 @router.delete('/{id}', status_code=204)
 async def delete_log_item(id: uuid.UUID, db: DB = Depends(get_db), user_id: str = Depends(check_auth)):
-    async with db.async_session() as session:
-        session: AsyncSession
-        user_db = await session.scalar(sa.select(User).where(User.id == user_id))
-        if user_db is None:
-            raise HTTPException(401, "wrond access token")
-        log_item = await session.scalar(sa.select(LogItem, LogGroup).where(LogItem.id == id).where(User.id == user_id))
-        logger.debug(log_item)
-        if log_item is None:
-            raise HTTPException(400, "wrond LogItem id")
-        await session.delete(log_item)
-        await session.commit()
-        return {}
+    deleted_log_item_id = await log_item_controller.delete_log_item_by_id_and_user_id(db, id, user_id)
+    if deleted_log_item_id is None:
+        raise HTTPException(400, "cannot delete this LogItem")
+    return {}
 
 
 @router.get('')
 async def list_log_items(
     log_group_id: uuid.UUID,
-    level: log_levels | None = None,
+    level: str | None = None,
     limit: int | None = None,
     offset: int | None = None,
     db: DB = Depends(get_db),
     user_id: str = Depends(check_auth)
 ) -> ListLogItemResponse:
-    async with db.async_session() as session:
-        session: AsyncSession
-        user_db = await session.scalar(sa.select(User).where(User.id == user_id))
-        if user_db is None:
-            raise HTTPException(401, "wrond access token")
-        log_group_db_id = await session.scalar(sa.select(LogGroup.id).where(User.id == user_id))
-        if log_group_db_id is None:
-            raise HTTPException(403, "you cannot read logs from this group")
-
-        count_stmt = sa.select(sa.func.count()).select_from(LogItem).where(LogGroup.id == log_group_id)
-        stmt = sa.select(LogItem).where(LogGroup.id == log_group_id).order_by(sa.desc(LogItem.timestamp))
-
-        if level is not None:
-            count_stmt = count_stmt.where(LogLevel.name == level)
-            stmt = stmt.where(LogLevel.name == level)
-        if limit is not None:
-            stmt = stmt.limit(limit)
-        if offset is not None:
-            stmt = stmt.offset(offset)
-
-        count = await session.scalar(count_stmt)
-        log_items = (await session.execute(stmt)).scalars().all()
-        return ListLogItemResponse(count=count, items=log_items)
+    log_items = await log_item_controller.get_log_items(db, log_group_id, user_id, level, limit, offset)
+    if log_items is None:
+        raise HTTPException(400, "wrong request data")
+    log_items_count = await log_item_controller.get_log_items_count(db, log_group_id, user_id, level)
+    if log_items_count is None:
+        raise HTTPException(400, "wrong request data")
+    return ListLogItemResponse(count=log_items_count, items=[LogItemResponse(**log_item.dict()) for log_item in log_items])

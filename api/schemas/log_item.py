@@ -1,13 +1,12 @@
 import datetime
 from pydantic import BaseModel, UUID4
 
-from api.globals import log_levels
 from api.schemas.log_level import LogLevelResponse
 from api.schemas.log_group import LogGroupResponse
 
 
 class CreateLogItemRequest(BaseModel):
-    level: log_levels
+    level: str
     message: str
     timestamp: datetime.datetime
 
@@ -19,9 +18,6 @@ class LogItemResponse(BaseModel):
     log_group: LogGroupResponse
     message: str
     timestamp: datetime.datetime
-
-    class Config:
-        orm_mode = True
 
 
 class ListLogItemResponse(BaseModel):

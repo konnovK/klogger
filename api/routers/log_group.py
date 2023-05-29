@@ -1,15 +1,14 @@
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 
-from sqlalchemy.ext.asyncio import AsyncSession
-import sqlalchemy as sa
 from sqlalchemy.exc import IntegrityError
 
 from api.dependencies import get_db, check_auth
 from api.schemas.log_group import LogGroupResponse, CreateLogGroupRequest
+from api.globals import log_group_controller
 
-from db import DB, User, LogGroup
+from db import DB
 
 
 router = APIRouter(prefix='/log-group', tags=['LogGroup'])
@@ -18,20 +17,11 @@ router = APIRouter(prefix='/log-group', tags=['LogGroup'])
 @router.post('', status_code=201)
 async def create_log_group(body: CreateLogGroupRequest, db: DB = Depends(get_db), user_id: str = Depends(check_auth)) -> LogGroupResponse:
     logger.debug(f'USER WITH id={user_id} TRY TO CREATE LogGroup {body.name}')
-    async with db.async_session() as session:
-        session: AsyncSession
-        user_db = await session.scalar(sa.select(User).where(User.id == user_id))
-        if user_db is None:
-            raise HTTPException(401, "wrong access token")
-        try:
-            log_group = LogGroup(name=body.name, description=body.description, user=user_db)
-            session.add(log_group)
-            await session.commit()
-            await session.refresh(log_group)
-            return log_group
-        except IntegrityError:
-            raise HTTPException(409, f'LogGroup {body.name} is already exists')
-
+    try:
+        log_group = await log_group_controller.create_log_group(db, user_id, body.name, body.description)
+        return LogGroupResponse(**log_group.dict())
+    except IntegrityError:
+        raise HTTPException(409, f'LogGroup {body.name} is already exists')
 
 
 @router.patch('/{id}', deprecated=True)
@@ -42,30 +32,13 @@ async def update_log_group():
 @router.delete('/{id}', status_code=204)
 async def delete_log_group(id: uuid.UUID, db: DB = Depends(get_db), user_id: str = Depends(check_auth)):
     logger.debug(f'USER WITH id={user_id} TRY TO DELETE LogGroup {str(id)}')
-    async with db.async_session() as session:
-        session: AsyncSession
-        user_db = await session.scalar(sa.select(User).where(User.id == user_id))
-        if user_db is None:
-            raise HTTPException(401, "wrong access token")
-        log_group = await session.scalar(sa.select(LogGroup).where(LogGroup.id == id))
-        if log_group is None:
-            raise HTTPException(409, f'LogGroup with id={str(id)} is not exists')
-        if str(log_group.user_id) != user_id:
-            raise HTTPException(403, f'you have no permissions for deleting this LogGroup')
-        await session.delete(log_group)
-        await session.commit()
-        return {}
+    deleted_log_group_id = await log_group_controller.delete_log_group_by_id_and_user_id(db, id, user_id)
+    if deleted_log_group_id is None:
+        raise HTTPException(400, f'you cannot delete this LogGroup')
+    return {}
 
 
 @router.get('')
-async def list_log_groups(user_email: str | None = None, db: DB = Depends(get_db), user_id: str = Depends(check_auth)):
-    logger.debug(f'USER WITH id={user_id} TRY TO GET LIST OF LogGroup FOR user_email={user_email}')
-    async with db.async_session() as session:
-        session: AsyncSession
-        if user_email is None or user_email == '':
-            log_groups = (await session.execute(sa.select(LogGroup))).scalars().all()
-            return log_groups
-        else:
-            stmt = sa.select(LogGroup).where(User.email == user_email)
-            log_groups = (await session.execute(stmt)).scalars().all()
-            return log_groups
+async def list_log_groups(db: DB = Depends(get_db), user_id: str = Depends(check_auth)) -> list[LogGroupResponse]:
+    log_groups = await log_group_controller.get_list_log_groups(db, user_id)
+    return [LogGroupResponse(**log_group.dict()) for log_group in log_groups]

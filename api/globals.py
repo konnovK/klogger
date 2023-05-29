@@ -1,10 +1,14 @@
 
-from typing import Literal
 from loguru import logger
 from pydantic import ValidationError
+
+from controllers.log_item import LogItemController
+from controllers.log_group import LogGroupController
+from controllers.log_level import LogLevelController
+from controllers.user import UserController
+
 from db import DB
 from api.settings import APISettings
-
 
 try:
     settings = APISettings()
@@ -23,12 +27,16 @@ db = DB(
     settings.debug,
 )
 
-
-log_levels = Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
-
+user_controller = UserController()
+log_level_controller = LogLevelController()
+log_group_controller = LogGroupController()
+log_item_controller = LogItemController()
 
 __all__ = [
     settings,
     db,
-    log_levels
+    user_controller,
+    log_level_controller,
+    log_group_controller,
+    log_item_controller
 ]

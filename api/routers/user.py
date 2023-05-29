@@ -2,34 +2,27 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 
-from sqlalchemy.ext.asyncio import AsyncSession
-import sqlalchemy as sa
 from sqlalchemy.exc import IntegrityError
+
+from db import DB
 
 from api.dependencies import check_auth, get_db
 from api.schemas.user import CreateUserRequest, LoginRequest, LoginResponse, UserResponse
-from api.utils import hash_password
 from api.utils import create_jwt
+from api.globals import user_controller
 
-from db import DB, User
 
 router = APIRouter(prefix='/user', tags=['User'])
 
 
 @router.post('', status_code=201)
 async def create_user(body: CreateUserRequest, db: DB = Depends(get_db)) -> UserResponse:
-    async with db.async_session() as session:
-        session: AsyncSession
-        password_hash = hash_password(body.email, body.password)
-        try:
-            user_db = User(email=body.email, password_hash=password_hash)
-            session.add(user_db)
-            await session.commit()
-            await session.refresh(user_db)
-            return user_db
-        except IntegrityError:
-            logger.debug(f"TRY TO CREATE User {body.email}, THATS ALREADY EXISTS")
-            raise HTTPException(409, f"User with email {body.email} is already exists")
+    try:
+        user = await user_controller.create_user(db, body.email, body.password)
+        return UserResponse(**user.dict())
+    except IntegrityError:
+        logger.debug(f"TRY TO CREATE User {body.email}, THATS ALREADY EXISTS")
+        raise HTTPException(409, f"User with email {body.email} is already exists")
 
 
 @router.patch('/{id}', deprecated=True)
@@ -41,45 +34,34 @@ async def update_user(id: uuid.UUID) -> UserResponse:
 async def delete_user(id: uuid.UUID, db: DB = Depends(get_db), user_id: str = Depends(check_auth)):
     if user_id != str(id):
         raise HTTPException(403, 'you cannot delete this user')
-    async with db.async_session() as session:
-        session: AsyncSession
-        user_db = await session.scalar(sa.select(User).where(User.id == id))
-        if user_db is None:
-            raise HTTPException(400, f"User with id {id} is not exists")
-        await session.delete(user_db)
-        await session.commit()
-        return {}
+    deleted_user_id = await user_controller.delete_user_by_id(db, id)
+    if deleted_user_id is None:
+        raise HTTPException(400, f"User with id {id} is not exists")
+    return {}
 
 
 @router.get('')
 async def list_users(db: DB = Depends(get_db)) -> list[UserResponse]:
-    async with db.async_session() as session:
-        session: AsyncSession
-        users_db = (await session.execute(sa.select(User))).scalars().all()
-        return users_db
+    users = await user_controller.get_list_users(db)
+    return [UserResponse(**user.dict()) for user in users]
 
 
 @router.get('/{id}')
 async def get_user(id: uuid.UUID, db: DB = Depends(get_db)) -> UserResponse:
-    async with db.async_session() as session:
-        session: AsyncSession
-        user_db = await session.scalar(sa.select(User).where(User.id == id))
-        if user_db is None:
-            raise HTTPException(400, f"User with id {id} is not exists")
-        return user_db
+    user = await user_controller.get_user_by_id(db, id)
+    if user is None:
+        raise HTTPException(400, f"User with id {id} is not exists")
+    return UserResponse(**user.dict())
 
 
 @router.post('/login')
 async def login_user(body: LoginRequest, db: DB = Depends(get_db)) -> LoginResponse:
-    async with db.async_session() as session:
-        session: AsyncSession
-        password_hash = hash_password(body.email, body.password)
-        user_db = await session.scalar(sa.select(User).where(User.email == body.email).where(User.password_hash == password_hash))
-        if user_db is None:
-            raise HTTPException(400, f"User with id {id} is not exists")
-        try:
-            access_token, refresh_token, expires_in = create_jwt(str(user_db.id))
-        except Exception as err:
-            logger.error(err)
-            raise HTTPException(400, f"Bad request data for create token")
-        return LoginResponse(access_token=access_token, refresh_token=refresh_token, access_token_expires_in=expires_in)
+    user_id = await user_controller.get_user_id_by_email_and_password(db, body.email, body.password)
+    if user_id is None:
+            raise HTTPException(400, f"User with id {user_id} is not exists")
+    try:
+        access_token, refresh_token, expires_in = create_jwt(str(user_id))
+    except Exception as err:
+        logger.debug(err)
+        raise HTTPException(400, f"Bad request data for create token")
+    return LoginResponse(access_token=access_token, refresh_token=refresh_token, access_token_expires_in=expires_in)

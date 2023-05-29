@@ -27,5 +27,3 @@ class UserResponse(BaseModel):
 
     log_groups: list[LogGroupResponse]
 
-    class Config:
-        orm_mode = True
