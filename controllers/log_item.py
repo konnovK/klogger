@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy as sa
 
 from controllers.schemas.log_item import LogItemResponse
-from db import DB, LogItem, LogGroup, LogLevel
+from db import DB, LogItem, LogGroup, LogLevel, User
 
 
 class LogItemController:
@@ -12,7 +12,7 @@ class LogItemController:
     async def create_log_item(db: DB, level: str, message: str, timestamp: datetime.datetime, log_group_id: uuid.UUID, user_id: uuid.UUID) -> LogItemResponse | None:
         async with db.async_session() as session:
             session: AsyncSession
-            log_group_db_id = await session.scalar(sa.select(LogGroup.id).where(LogGroup.user_id == user_id).where(LogGroup.id == log_group_id))
+            log_group_db_id = await session.scalar(sa.select(LogGroup.id).where(User.id == user_id).where(LogGroup.id == log_group_id))
             if log_group_db_id is None:
                 return None
             log_level_db_name = await session.scalar(sa.select(LogLevel.name).where(LogLevel.name == level))
