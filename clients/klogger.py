@@ -64,6 +64,3 @@ class KLoggerHandler(Handler):
             json.dumps(request_data),
             {'Content-type': 'application/json', 'Authorization': f'Bearer {self.access_token}'}
         )
-        response = connection.getresponse()
-        if response.status != 201:
-            self.handleError(f'Problems with write log: {response.status} {response.reason}')
