@@ -20,7 +20,7 @@ import http.client
 
 
 class KLoggerHandler(Handler):
-    def __init__(self, url: str, user_email: str, user_password: str, log_group_id: str, level=0):
+    def __init__(self, url: str, user_email: str, user_password: str, log_group_id: str, wait_response: bool = True, level=0):
         connection = http.client.HTTPConnection(url)
         connection.request(
             'POST',
@@ -37,6 +37,7 @@ class KLoggerHandler(Handler):
         self.access_token = response_data['access_token']
         self.log_group_id = log_group_id
         self.url = url
+        self.wait_response = wait_response
 
         connection.close()
         super().__init__(level)
@@ -64,3 +65,7 @@ class KLoggerHandler(Handler):
             json.dumps(request_data),
             {'Content-type': 'application/json', 'Authorization': f'Bearer {self.access_token}'}
         )
+        if self.wait_response:
+            # Если не ждать ответа от сервера, и отправлять много запросов, то серверу может стать плохо
+            # Зато не будет тратиться время на ожидание ответа (ок. 30 мс по моим расчетам)
+            response = connection.getresponse()
