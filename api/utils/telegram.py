@@ -5,6 +5,8 @@ from api.globals import telegram_bot, settings
 
 
 async def _multicast_message(bot: telegram.Bot, chat_ids: list[str], text: str):
+    if settings.telegram_token is None or settings.telegram_users_ids is None:
+        return
     for chat_id in chat_ids:
         logger.debug(f'TELEGRAM BOT: SEND MESSAGE {text=} {chat_id=}')
         await bot.send_message(text=text, chat_id=chat_id)
