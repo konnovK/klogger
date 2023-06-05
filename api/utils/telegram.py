@@ -24,7 +24,7 @@ async def multicast_log_item(level: str, timestamp: datetime.datetime, message: 
         'critical'
     ]:
         return
-    await multicast_message(f'{timestamp} | {level} | {message}')
+    await multicast_message(f'{timestamp}\n{level}\n\n{message}')
 
 
 __all__ = [
