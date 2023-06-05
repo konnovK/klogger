@@ -17,6 +17,13 @@ async def multicast_message(text: str):
 
 
 async def multicast_log_item(level: str, timestamp: datetime.datetime, message: str):
+    if level.lower() not in [
+        'warn',
+        'warning',
+        'error',
+        'critical'
+    ]:
+        return
     await multicast_message(f'{timestamp} | {level} | {message}')
 
 
