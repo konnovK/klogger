@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from api.utils.telegram import multicast_log_item
@@ -17,7 +18,7 @@ async def create_log_item(body: CreateLogItemRequest, log_group_id: uuid.UUID, d
     if created_log_item is None:
         raise HTTPException(400, 'wrong request data')
     try:
-        await multicast_log_item(body.level, body.timestamp, body.message)
+        task = asyncio.create_task(multicast_log_item(body.level, body.timestamp, body.message))
     except Exception:
         pass
     return LogItemResponse(**created_log_item.dict())
