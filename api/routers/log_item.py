@@ -16,7 +16,10 @@ async def create_log_item(body: CreateLogItemRequest, log_group_id: uuid.UUID, d
     created_log_item = await log_item_controller.create_log_item(db, body.level, body.message, body.timestamp, log_group_id, user_id)
     if created_log_item is None:
         raise HTTPException(400, 'wrong request data')
-    await multicast_log_item(body.level, body.timestamp, body.message)
+    try:
+        await multicast_log_item(body.level, body.timestamp, body.message)
+    except Exception:
+        pass
     return LogItemResponse(**created_log_item.dict())
 
 
