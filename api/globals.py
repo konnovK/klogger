@@ -33,7 +33,13 @@ log_level_controller = LogLevelController()
 log_group_controller = LogGroupController()
 log_item_controller = LogItemController()
 
-telegram_bot = telegram.Bot(token=settings.telegram_token)
+try:
+    if settings.telegram_token is not None:
+        telegram_bot = telegram.Bot(token=settings.telegram_token)
+    else:
+        telegram_bot = None
+except Exception:
+    telegram_bot = None
 
 __all__ = [
     settings,
