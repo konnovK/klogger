@@ -1,6 +1,7 @@
 
 from loguru import logger
 from pydantic import ValidationError
+import telegram
 
 from controllers.log_item import LogItemController
 from controllers.log_group import LogGroupController
@@ -32,11 +33,14 @@ log_level_controller = LogLevelController()
 log_group_controller = LogGroupController()
 log_item_controller = LogItemController()
 
+telegram_bot = telegram.Bot(token=settings.telegram_token)
+
 __all__ = [
     settings,
     db,
     user_controller,
     log_level_controller,
     log_group_controller,
-    log_item_controller
+    log_item_controller,
+    telegram_bot
 ]

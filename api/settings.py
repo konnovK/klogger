@@ -17,6 +17,9 @@ class APISettings(BaseSettings):
 
     log_item_ttl: int = 60 * 60 * 24 * 1
 
+    telegram_token: str | None
+    telegram_users_ids: list[str] | None
+
     class Config:
         env_file = '.env'
         env_file_encoding = 'utf-8'
