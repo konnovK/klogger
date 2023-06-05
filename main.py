@@ -24,8 +24,9 @@ async def main():
     from db.schema import metadata
     await db.create_all_tables(metadata)
 
-    logger.info(f'START TELEGRAM BOT')
-    await telegram_bot.initialize()
+    if telegram_bot is not None:
+        logger.info(f'START TELEGRAM BOT')
+        await telegram_bot.initialize()
 
     "Run scheduler and the API"
     server = Server(config=uvicorn.Config(app, host='0.0.0.0', port=settings.port, access_log=False))
@@ -35,8 +36,9 @@ async def main():
 
     await asyncio.wait([sched, api])
 
-    logger.info(f'STOP TELEGRAM BOT')
-    await telegram_bot.shutdown()
+    if telegram_bot is not None:
+        logger.info(f'STOP TELEGRAM BOT')
+        await telegram_bot.shutdown()
 
 if __name__ == "__main__":
     logger.info(f"START SERVER ON port={settings.port}")
