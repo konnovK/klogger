@@ -19,6 +19,7 @@ class APISettings(BaseSettings):
 
     telegram_token: str | None
     telegram_users_ids: list[str] | None
+    telegram_levels: list[str] = ['WARNING', 'WARN', 'ERROR', 'CRITICAL']
 
     class Config:
         env_file = '.env'

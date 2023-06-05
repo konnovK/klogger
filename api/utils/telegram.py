@@ -17,12 +17,7 @@ async def multicast_message(text: str):
 
 
 async def multicast_log_item(level: str, timestamp: datetime.datetime, message: str):
-    if level.lower() not in [
-        'warn',
-        'warning',
-        'error',
-        'critical'
-    ]:
+    if level.lower() not in settings.telegram_levels:
         return
     await multicast_message(f'{timestamp}\n{level}\n\n{message}')
 
